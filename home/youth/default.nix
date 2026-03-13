@@ -49,9 +49,9 @@
     "image/png" = ["imv.desktop"];
     "image/jpeg" = ["imv.desktop"];
     "image/gif" = ["imv.desktop"];
-    "text/html" = "google-chrome.desktop";
-    "x-scheme-handler/http" = "google-chrome.desktop";
-    "x-scheme-handler/https" = "google-chrome.desktop";
+    "text/html" = "brave.desktop";
+    "x-scheme-handler/http" = "brave.desktop";
+    "x-scheme-handler/https" = "brave.desktop";
     "x-scheme-handler/clash" = "clash-verge.desktop";
   };
 
@@ -68,7 +68,7 @@
     VISUAL = "nvim";
     PATH = "$HOME/.local/bin:$PATH";
     LANG = "en_US.UTF-8"; # 系统主语言英文
-    LC_CTYPE = "zh_CN.UTF-8"; # 字符显示支持中文
+    LC_CTYPE = "zh_TW.UTF-8"; # 字符显示支持中文
     LC_MESSAGES = "en_US.UTF-8"; # 程序输出信息保持英文
   };
 
