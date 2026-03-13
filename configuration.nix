@@ -10,7 +10,7 @@
   ];
 
   environment.systemPackages = with pkgs; [
-    google-chrome
+    brave
     pulseaudio
     pciutils # lspci
     ffmpeg
@@ -26,8 +26,6 @@
   ];
 
   nix.settings.trusted-users = ["root" "youth"];
-  # docker
-  virtualisation.docker.enable = true;
 
   environment.sessionVariables = {
     NIXOS_OZONE_WL = "1";
@@ -36,15 +34,6 @@
     QT_IM_MODULE = "fcitx";
     QT5_IM_MODULE = "fcitx";
     XMODIFIERS = "@im=fcitx";
-  };
-
-  # NOTE: 敏感环境变量加载 (ai_api_key等)
-  age.identityPaths = [
-    "/home/youth/.ssh/id_ed25519"
-  ];
-  age.secrets."ai_api_key" = {
-    file = ./secrets/ai_api_key.age;
-    owner = "youth";
   };
 
   programs.zsh.enable = true;
@@ -79,9 +68,6 @@
   # networking
   networking.hostName = "cook";
   networking.networkmanager.enable = true;
-  networking.firewall.allowedTCPPorts = [
-    5900
-  ];
 
   # Configure network proxy if necessary
   # 系统级代理设置
@@ -107,15 +93,15 @@
   '';
 
   # timezone and local
-  time.timeZone = "Asia/Shanghai";
+  time.timeZone = "Asia/Taipei";
   # Select internationalisation properties.
   i18n.defaultLocale = "en_US.UTF-8";
   i18n.extraLocaleSettings = {
-    LC_TIME = "zh_CN.UTF-8";
-    LC_MEASUREMENT = "zh_CN.UTF-8";
-    LC_NUMERIC = "zh_CN.UTF-8";
-    LC_PAPER = "zh_CN.UTF-8";
-    LC_CTYPE = "zh_CN.UTF-8";
+    LC_TIME = "zh_TW.UTF-8";
+    LC_MEASUREMENT = "zh_TW.UTF-8";
+    LC_NUMERIC = "zh_TW.UTF-8";
+    LC_PAPER = "zh_TW.UTF-8";
+    LC_CTYPE = "zh_TW.UTF-8";
   };
 
   console = {
@@ -131,7 +117,6 @@
     noto-fonts
     noto-fonts-cjk-sans
     noto-fonts-color-emoji
-
     nerd-fonts.fira-code
     nerd-fonts.jetbrains-mono
   ];
@@ -200,14 +185,6 @@
   hardware.graphics = {
     enable = true;
     enable32Bit = true;
-    extraPackages = with pkgs; [
-      intel-media-driver
-      intel-vaapi-driver
-    ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [
-      intel-media-driver
-      intel-vaapi-driver
-    ];
   };
   system.stateVersion = "25.05";
 
@@ -224,37 +201,4 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
-
-  #### systemd user env loader ####
-  systemd.user.services.env-loader = {
-    description = "Load API keys from agenix into graphical session";
-    wantedBy = ["graphical-session-pre.target"];
-    before = ["graphical-session.target"];
-
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      ExecStart = pkgs.writeShellScript "env-loader" ''
-          SECRET_FILE="${config.age.secrets.ai_api_key.path}"
-          if [ -f "$SECRET_FILE" ]; then
-          # 1. 临时开启自动导出功能，并 source 文件
-          set -a
-          . "$SECRET_FILE"
-          set +a
-
-          # 2. 提取文件中的变量名 (匹配等号左边的字符)
-          VARS=$(grep -oP '^[a-zA-Z_][a-zA-Z0-9_]*(?==)' "$SECRET_FILE")
-
-          # 3. 将变量注入 D-Bus (解决 Rofi/GUI 应用识别问题)
-          ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd $VARS
-
-          # 4. 同步到 systemd 用户环境
-          for var in $VARS; do
-            val=$(eval echo \$$var)
-            ${pkgs.systemd}/bin/systemctl --user set-environment "$var"="$val"
-          done
-        fi
-      '';
-    };
-  };
 }
